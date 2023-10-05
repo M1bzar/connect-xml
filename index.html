@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ejemplo de solicitud XML</title>
+</head>
+<body>
+    <button id="obtenerDatos">Obtener Datos XML</button>
+    <table id="tablaDatos">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Edad</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        document.getElementById('obtenerDatos').addEventListener('click', function() {
+            // Realizar una solicitud HTTP al servidor
+            fetch('http://localhost/xml/xml.php')
+                .then(response => response.text()) // Convertir la respuesta a texto
+                .then(xmlText => {
+                    // Procesar el XML y mostrarlo en una tabla
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+                    const items = xmlDoc.getElementsByTagName('item');
+                    const tablaBody = document.querySelector('#tablaDatos tbody');
+
+                    // Limpiar la tabla antes de agregar nuevos datos
+                    tablaBody.innerHTML = '';
+
+                    // Iterar a través de los elementos XML y agregarlos a la tabla
+                    for (let i = 0; i < items.length; i++) {
+                        const nombre = items[i].getElementsByTagName('nombre')[0].textContent;
+                        const edad = items[i].getElementsByTagName('edad')[0].textContent;
+
+                        const fila = `<tr><td>${nombre}</td><td>${edad}</td></tr>`;
+                        tablaBody.innerHTML += fila;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+</html>
