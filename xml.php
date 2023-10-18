@@ -16,6 +16,7 @@ if ($conexion->connect_error) {
 $query = "SELECT * FROM targetas";
 $resultado = $conexion->query($query);
 
+
 // Crear un arreglo para almacenar los datos
 $data = array();
 
