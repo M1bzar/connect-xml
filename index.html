@@ -5,44 +5,136 @@
 </head>
 <body>
     <button id="obtenerDatos">Obtener Datos XML</button>
+    <form id="agregarDatosForm">
+        <label for="title">Título:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="description">Descripción:</label>
+        <textarea id="description" name="description" rows="4" required></textarea>
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" required>
+        <label for="type">Tipo:</label>
+        <input type="text" id="type" name="type" required>
+        <button type="submit">Agregar a la Base de Datos</button>
+    </form>
     <table id="tablaDatos">
         <thead>
             <tr>
-                <th>Nombre</th>
-                <th>Edad</th>
+                <th>Título</th>
+                <th>Descripción</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Acción</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
+    <h2>Eliminar Datos:</h2>
+    <form id="eliminarDatosForm">
+        <label for="eliminarId">ID del elemento a eliminar:</label>
+        <input type="number" id="eliminarId" name="eliminarId" required>
+        <button type="submit">Eliminar de la Base de Datos</button>
+    </form>
+
+    <h2>Actualizar Datos:</h2>
+<form id="actualizarDatosForm">
+    <label for="updateId">ID del elemento a actualizar:</label>
+    <input type="number" id="updateId" name="updateId" required>
+    <label for="newTitle">Nuevo Título:</label>
+    <input type="text" id="newTitle" name="newTitle" required>
+    <label for="newDescription">Nueva Descripción:</label>
+    <textarea id="newDescription" name="newDescription" rows="4" required></textarea>
+    <label for="newFecha">Nueva Fecha:</label>
+    <input type="date" id="newFecha" name="newFecha" required>
+    <label for="newType">Nuevo Tipo:</label>
+    <input type="text" id="newType" name="newType" required>
+    <button type="submit">Actualizar en la Base de Datos</button>
+</form>
+
     <script>
         document.getElementById('obtenerDatos').addEventListener('click', function() {
             // Realizar una solicitud HTTP al servidor
-            fetch('http://localhost/xml/xml.php')
-                .then(response => response.text()) // Convertir la respuesta a texto
-                .then(xmlText => {
-                    // Procesar el XML y mostrarlo en una tabla
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-                    const items = xmlDoc.getElementsByTagName('item');
-                    const tablaBody = document.querySelector('#tablaDatos tbody');
+            fetch('http://localhost/xml/xml.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'accion=obtenerDatos',
+            })
+            .then(response => response.json())
+            .then(data => {
+                const tablaBody = document.querySelector('#tablaDatos tbody');
+                tablaBody.innerHTML = '';
 
-                    // Limpiar la tabla antes de agregar nuevos datos
-                    tablaBody.innerHTML = '';
-
-                    // Iterar a través de los elementos XML y agregarlos a la tabla
-                    for (let i = 0; i < items.length; i++) {
-                        const nombre = items[i].getElementsByTagName('nombre')[0].textContent;
-                        const edad = items[i].getElementsByTagName('edad')[0].textContent;
-
-                        const fila = `<tr><td>${nombre}</td><td>${edad}</td></tr>`;
-                        tablaBody.innerHTML += fila;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+                data.forEach(item => {
+                    const title = item.title;
+                    const description = item.description;
+                    const fecha = item.fecha;
+                    const type = item.type;
+                    const fila = `<tr><td>${title}</td><td>${description}</td><td>${fecha}</td><td>${type}</td><td><button class="eliminar" data-id="${item.id}">Eliminar</button></td></tr>`;
+                    tablaBody.innerHTML += fila;
                 });
+
+                // Agregar un controlador de eventos para los botones de eliminación
+                const eliminarBotones = document.querySelectorAll('.eliminar');
+                eliminarBotones.forEach(boton => {
+                    boton.addEventListener('click', function() {
+                        const id = this.getAttribute('data-id');
+                        eliminarDato(id);
+                    });
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         });
+
+        document.getElementById('agregarDatosForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            formData.append('accion', 'agregarDatos');
+            enviarSolicitud(formData);
+        });
+        
+        document.getElementById('actualizarDatosForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+            formData.append('accion', 'actualizarDatos');
+            enviarSolicitud(formData);
+        });
+
+        document.getElementById('eliminarDatosForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const id = document.getElementById('eliminarId').value;
+            eliminarDato(id);
+        });
+
+        function eliminarDato(id) {
+            const formData = new FormData();
+            formData.append('accion', 'eliminarDatos');
+            formData.append('id', id);
+            enviarSolicitud(formData);
+        }
+
+        function enviarSolicitud(formData) {
+            fetch('http://localhost/xml/xml.php', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    alert(data.message);
+                    document.getElementById('obtenerDatos').click(); // Actualizar la tabla de datos
+                } else if (data.error) {
+                    alert(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
     </script>
 </body>
 </html>
