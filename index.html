@@ -1,65 +1,79 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Ejemplo de solicitud XML</title>
+    <title>Obtener, Eliminar y Actualizar Registros</title>
 </head>
 <body>
-    <button id="obtenerDatos">Obtener Datos XML</button>
-    <form id="agregarDatosForm">
-        <label for="title">Título:</label>
-        <input type="text" id="title" name="title" required>
-        <label for="description">Descripción:</label>
-        <textarea id="description" name="description" rows="4" required></textarea>
-        <label for="fecha">Fecha:</label>
-        <input type="date" id="fecha" name="fecha" required>
-        <label for="type">Tipo:</label>
-        <input type="text" id="type" name="type" required>
-        <button type="submit">Agregar a la Base de Datos</button>
+    <h1>Obtener Registros</h1>
+    <button id="obtenerDatos">Obtener Datos</button>
+
+    <h1>Eliminar Registro</h1>
+    <!-- Formulario para eliminar un registro por ID -->
+    <form id="eliminarDatosForm">
+        <label for="eliminarId">ID del registro a eliminar:</label>
+        <input type="number" id="eliminarId" name="eliminarId" required>
+        <button type="submit">Eliminar Registro</button>
     </form>
+
+    <!-- Agrega un elemento para mostrar el resultado de la eliminación -->
+    <div id="resultadoEliminacion"></div>
+
+    <!-- Tabla para mostrar los datos obtenidos -->
+    <h1>Datos Obtenidos</h1>
     <table id="tablaDatos">
         <thead>
             <tr>
+                <th>ID</th>
                 <th>Título</th>
                 <th>Descripción</th>
                 <th>Fecha</th>
                 <th>Tipo</th>
-                <th>Acción</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <h2>Eliminar Datos:</h2>
-    <form id="eliminarDatosForm">
-        <label for="eliminarId">ID del elemento a eliminar:</label>
-        <input type="number" id="eliminarId" name="eliminarId" required>
-        <button type="submit">Eliminar de la Base de Datos</button>
+    <h1>Actualizar Registro</h1>
+    <!-- Formulario para actualizar un registro por ID -->
+    <form id="actualizarDatosForm">
+        <label for="updateId">ID del registro a actualizar:</label>
+        <input type="number" id="updateId" name="updateId" required>
+        <label for="newTitle">Nuevo Título:</label>
+        <input type="text" id="newTitle" name="newTitle" required>
+        <label for "newDescription">Nueva Descripción:</label>
+        <textarea id="newDescription" name="newDescription" rows="4" required></textarea>
+        <label for="newFecha">Nueva Fecha:</label>
+        <input type="date" id="newFecha" name="newFecha" required>
+        <label for="newType">Nuevo Tipo:</label>
+<input type="text" id="newType" name="newType" required>
+<button type="submit">Actualizar Registro</button>
     </form>
 
-    <h2>Actualizar Datos:</h2>
-<form id="actualizarDatosForm">
-    <label for="updateId">ID del elemento a actualizar:</label>
-    <input type="number" id="updateId" name="updateId" required>
-    <label for="newTitle">Nuevo Título:</label>
-    <input type="text" id="newTitle" name="newTitle" required>
-    <label for="newDescription">Nueva Descripción:</label>
-    <textarea id="newDescription" name="newDescription" rows="4" required></textarea>
-    <label for="newFecha">Nueva Fecha:</label>
-    <input type="date" id="newFecha" name="newFecha" required>
-    <label for="newType">Nuevo Tipo:</label>
-    <input type="text" id="newType" name="newType" required>
-    <button type="submit">Actualizar en la Base de Datos</button>
+    <!-- Agrega un elemento para mostrar el resultado de la actualización -->
+    <div id="resultadoActualizacion"></div>
+
+
+    <h1>Agregar Registro</h1>
+<!-- Formulario para agregar un nuevo registro -->
+<form id="agregarDatosForm">
+    <label for="title">Título:</label>
+    <input type="text" id="title" name="title" required>
+    <label for="description">Descripción:</label>
+    <textarea id="description" name="description" rows="4" required></textarea>
+    <label for="fecha">Fecha:</label>
+    <input type="date" id="fecha" name="fecha" required>
+    <label for="type">Tipo:</label>
+    <input type="text" id="type" name="type" required>
+    <button type="submit">Agregar Registro</button>
 </form>
 
+
+
     <script>
-        document.getElementById('obtenerDatos').addEventListener('click', function() {
-            // Realizar una solicitud HTTP al servidor
+        // Función para obtener datos
+        function obtenerDatos() {
             fetch('http://localhost/xml/xml.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'accion=obtenerDatos',
+                method: 'GET', // Utiliza el método GET para obtener datos
             })
             .then(response => response.json())
             .then(data => {
@@ -67,74 +81,126 @@
                 tablaBody.innerHTML = '';
 
                 data.forEach(item => {
+                    const id = item.id;
                     const title = item.title;
                     const description = item.description;
                     const fecha = item.fecha;
                     const type = item.type;
-                    const fila = `<tr><td>${title}</td><td>${description}</td><td>${fecha}</td><td>${type}</td><td><button class="eliminar" data-id="${item.id}">Eliminar</button></td></tr>`;
+                    const fila = `<tr><td>${id}</td><td>${title}</td><td>${description}</td><td>${fecha}</td><td>${type}</td></tr>`;
                     tablaBody.innerHTML += fila;
-                });
-
-                // Agregar un controlador de eventos para los botones de eliminación
-                const eliminarBotones = document.querySelectorAll('.eliminar');
-                eliminarBotones.forEach(boton => {
-                    boton.addEventListener('click', function() {
-                        const id = this.getAttribute('data-id');
-                        eliminarDato(id);
-                    });
                 });
             })
             .catch(error => {
                 console.error('Error:', error);
             });
-        });
+        }
 
-        document.getElementById('agregarDatosForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const formData = new FormData(this);
-            formData.append('accion', 'agregarDatos');
-            enviarSolicitud(formData);
-        });
-        
-        document.getElementById('actualizarDatosForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const formData = new FormData(this);
-            formData.append('accion', 'actualizarDatos');
-            enviarSolicitud(formData);
-        });
+        document.getElementById('obtenerDatos').addEventListener('click', obtenerDatos);
 
         document.getElementById('eliminarDatosForm').addEventListener('submit', function(event) {
             event.preventDefault();
+
+            // Obtener el ID a eliminar
             const id = document.getElementById('eliminarId').value;
-            eliminarDato(id);
-        });
 
-        function eliminarDato(id) {
-            const formData = new FormData();
-            formData.append('accion', 'eliminarDatos');
-            formData.append('id', id);
-            enviarSolicitud(formData);
-        }
-
-        function enviarSolicitud(formData) {
+            // Realizar una solicitud HTTP al servidor para eliminar el registro
             fetch('http://localhost/xml/xml.php', {
-                method: 'POST',
-                body: formData,
+                method: 'DELETE', // Utiliza el método DELETE
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'id=' + id,
             })
             .then(response => response.json())
             .then(data => {
-                if (data.message) {
-                    alert(data.message);
-                    document.getElementById('obtenerDatos').click(); // Actualizar la tabla de datos
-                } else if (data.error) {
-                    alert(data.error);
-                }
+                // Mostrar el resultado de la eliminación en el elemento de resultado
+                const resultadoEliminacion = document.getElementById('resultadoEliminacion');
+                resultadoEliminacion.innerHTML = data.message || data.error || 'Error desconocido';
+
+                // Actualizar la tabla de datos después de eliminar
+                obtenerDatos();
             })
             .catch(error => {
                 console.error('Error:', error);
             });
-        }
+        });
+
+        // Función para actualizar un registro
+        document.getElementById('actualizarDatosForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Obtener el ID a actualizar y los nuevos datos
+            const id = document.getElementById('updateId').value;
+            const newTitle = document.getElementById('newTitle').value;
+            const newDescription = document.getElementById('newDescription').value;
+            const newFecha = document.getElementById('newFecha').value;
+            const newType = document.getElementById('newType').value;
+
+            // Realizar una solicitud HTTP al servidor para actualizar el registro
+            fetch('http://localhost/xml/xml.php', {
+                method: 'PUT', // Utiliza el método PUT
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    newTitle: newTitle,
+                    newDescription: newDescription,
+                    newFecha: newFecha,
+                    newType: newType
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Mostrar el resultado de la actualización en el elemento de resultado
+                const resultadoActualizacion = document.getElementById('resultadoActualizacion');
+                resultadoActualizacion.innerHTML = data.message || data.error || 'Error desconocido';
+
+                // Actualizar la tabla de datos después de la actualización
+                obtenerDatos();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+
+        document.getElementById('agregarDatosForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Obtener los datos del formulario
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const fecha = document.getElementById('fecha').value;
+        const type = document.getElementById('type').value;
+
+        // Realizar una solicitud HTTP al servidor para agregar el registro
+        fetch('http://localhost/xml/xml.php', {
+            method: 'POST', // Utiliza el método POST para agregar datos
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: title,
+                description: description,
+                fecha: fecha,
+                type: type,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Mostrar el resultado de la adición en la consola
+            console.log(data);
+
+            // Actualizar la tabla de datos después de agregar
+            obtenerDatos();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+   
     </script>
 </body>
 </html>
