@@ -68,6 +68,25 @@
 </form>
 
 
+<h1>Actualizar Registro (PATCH)</h1>
+<form id="actualizarDatosFormPATCH">
+    <label for="updateIdPATCH">ID del registro a actualizar:</label>
+    <input type="number" id="updateIdPATCH" name="updateIdPATCH" required>
+    <label for="newTitlePATCH">Nuevo Título:</label>
+    <input type="text" id="newTitlePATCH" name="newTitlePATCH" >
+    <label for="newDescriptionPATCH">Nueva Descripción:</label>
+    <textarea id="newDescriptionPATCH" name="newDescriptionPATCH" rows="4" ></textarea>
+    <label for="newFechaPATCH">Nueva Fecha:</label>
+    <input type="date" id="newFechaPATCH" name="newFechaPATCH" >
+    <label for="newTypePATCH">Nuevo Tipo:</label>
+    <input type="text" id="newTypePATCH" name="newTypePATCH" >
+    <button type="submit">Actualizar Registro (PATCH)</button>
+</form>
+<div id="resultadoActualizacionPATCH"></div>
+
+
+
+
 
     <script>
         // Función para obtener datos
@@ -200,6 +219,61 @@
         });
     });
 
+    document.getElementById('actualizarDatosFormPATCH').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    // Obtener el ID a actualizar y los nuevos datos
+    const id = document.getElementById('updateIdPATCH').value;
+
+    // Inicializar un objeto para almacenar los campos a actualizar
+    const updateData = {
+        id: id, // Siempre incluye el ID
+    };
+
+    // Obtener los valores de los campos y agregarlos al objeto updateData si tienen valor
+    const newTitle = document.getElementById('newTitlePATCH').value;
+    if (newTitle) {
+        updateData.newTitle = newTitle;
+    }
+
+    const newDescription = document.getElementById('newDescriptionPATCH').value;
+    if (newDescription) {
+        updateData.newDescription = newDescription;
+    }
+
+    const newFecha = document.getElementById('newFechaPATCH').value;
+    if (newFecha) {
+        updateData.newFecha = newFecha;
+    }
+
+    const newType = document.getElementById('newTypePATCH').value;
+    if (newType) {
+        updateData.newType = newType;
+    }
+
+    // Realizar una solicitud PATCH al servidor solo si hay campos para actualizar
+    if (Object.keys(updateData).length > 1) {
+        fetch('http://localhost/xml/xml.php', {
+            method: 'PATCH', // Utiliza el método PATCH
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updateData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Mostrar el resultado de la actualización en el elemento de resultado
+            const resultadoActualizacionPATCH = document.getElementById('resultadoActualizacionPATCH');
+            resultadoActualizacionPATCH.innerHTML = data.message || data.error || 'Error desconocido';
+
+            // Actualizar la tabla de datos después de la actualización
+            obtenerDatos();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+});
    
     </script>
 </body>

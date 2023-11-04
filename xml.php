@@ -174,6 +174,84 @@ if ($method === 'DELETE') {
     } else {
         $response = array('error' => 'Datos no válidos para la adición');
     }
+}else if ($method === 'OPTIONS') {
+    // Manejar solicitudes OPTIONS simplemente respondiendo con las cabeceras permitidas
+    header("HTTP/1.1 200 OK");
+    exit;
+}else if ($method === 'PATCH') {
+    // Procesar una solicitud PATCH para actualizar un registro
+
+    // Obtener los datos del cuerpo de la solicitud
+    $data = json_decode(file_get_contents("php://input"), true);
+
+    // Verificar si se proporcionaron datos válidos
+    if (isset($data['id']) && is_numeric($data['id'])) {
+        // Obtener el ID y otros campos a actualizar
+        $id = $data['id'];
+
+        // Conexión a la base de datos
+        $conexion = new mysqli('localhost', 'gael', '123', 'blog');
+
+        // Verificar la conexión
+        if ($conexion->connect_error) {
+            die("Error de conexión: " . $conexion->connect_error);
+        }
+
+        // Construir la consulta SQL dinámicamente basada en los campos proporcionados
+        $query = "UPDATE targetas SET ";
+        $updateValues = array();
+
+        if (isset($data['newTitle'])) {
+            $query .= "title = ?, ";
+            $updateValues[] = $data['newTitle'];
+        }
+
+        if (isset($data['newDescription'])) {
+            $query .= "description = ?, ";
+            $updateValues[] = $data['newDescription'];
+        }
+
+        if (isset($data['newFecha'])) {
+            $query .= "fecha = ?, ";
+            $updateValues[] = $data['newFecha'];
+        }
+
+        if (isset($data['newType'])) {
+            $query .= "type = ?, ";
+            $updateValues[] = $data['newType'];
+        }
+
+        // Eliminar la coma adicional al final de la consulta
+        $query = rtrim($query, ", ");
+
+        // Agregar la cláusula WHERE para el ID
+        $query .= " WHERE id = ?";
+
+        // Preparar una sentencia
+        $stmt = $conexion->prepare($query);
+
+        if ($stmt === false) {
+            die('Error al preparar la consulta: ' . $conexion->error);
+        }
+
+        // Vincular los datos al parámetro de la consulta
+        $updateValues[] = $id;
+        $bindTypes = str_repeat('s', count($updateValues));
+        $stmt->bind_param($bindTypes, ...$updateValues);
+
+        // Ejecutar la consulta
+        if ($stmt->execute()) {
+            $response = array('message' => 'Registro actualizado exitosamente');
+        } else {
+            $response = array('error' => 'Error al actualizar el registro');
+        }
+
+        // Cerrar la conexión a la base de datos
+        $stmt->close();
+        $conexion->close();
+    } else {
+        $response = array('error' => 'Datos no válidos para la actualización');
+    }
 } else {
     $response = array('error' => 'Método no permitido');
 }
