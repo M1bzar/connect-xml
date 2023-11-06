@@ -1,6 +1,6 @@
 <?php
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS, LINK, HEAD");
 header("Access-Control-Allow-Headers: Content-Type");
 
 
@@ -52,7 +52,7 @@ if ($method === 'DELETE') {
     } else {
         $response = array('error' => 'ID no válido');
     }
-} else if ($method === 'GET') {
+} else if ($method === 'GET' || $method === 'HEAD') {
     // Procesar una solicitud GET para obtener datos
 
     // Conexión a la base de datos
@@ -78,6 +78,12 @@ if ($method === 'DELETE') {
     $conexion->close();
 
     $response = $data;
+    
+    if ($method === 'HEAD') {
+        // Si es una solicitud HEAD, elimina el contenido del cuerpo de la respuesta
+    
+        ob_end_clean();
+    }
 } else if ($method === 'PUT') {
     // Procesar una solicitud PUT para actualizar un registro
 
@@ -252,6 +258,22 @@ if ($method === 'DELETE') {
     } else {
         $response = array('error' => 'Datos no válidos para la actualización');
     }
+}else if ($method === 'TRACE') {
+    // Procesar una solicitud TRACE para habilitar la funcionalidad de diagnóstico
+
+    // Aquí puedes realizar cualquier lógica necesaria para responder a solicitudes TRACE
+    // Por ejemplo, puedes reflejar la solicitud de vuelta para fines de diagnóstico
+    $response = 'TRACE request received: ' . print_r($_REQUEST, true);
+ }else if ($method === 'LINK') {
+    // Procesa la solicitud LINK
+    // Analiza el encabezado Link para obtener información sobre la relación
+    $linkHeader = $_SERVER['HTTP_LINK'];
+
+    // Realiza las acciones necesarias para establecer la relación entre recursos
+    // Puedes analizar y procesar los datos del encabezado Link según tus necesidades
+
+    // Responde con una confirmación
+    $response = array('message' => 'Relación establecida exitosamente');
 } else {
     $response = array('error' => 'Método no permitido');
 }
